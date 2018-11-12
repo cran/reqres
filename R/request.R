@@ -143,7 +143,7 @@
 #' @export
 #'
 #' @examples
-#' fake_rook <- test <- fiery::fake_request(
+#' fake_rook <- fiery::fake_request(
 #'   'http://example.com/test?id=34632&question=who+is+hadley',
 #'   content = 'This is an elaborate ruse',
 #'   headers = list(
@@ -166,6 +166,10 @@
 #' # Perform content negotiation for the response
 #' req$accepts(c('html', 'json', 'txt'))
 #'
+#' # Cleaning up connections
+#' rm(fake_rook, req)
+#' gc()
+#'
 Request <- R6Class('Request',
   public = list(
     initialize = function(rook, trust = FALSE) {
@@ -183,7 +187,7 @@ Request <- R6Class('Request',
       private$PATH <- rook$PATH_INFO
       private$QUERYSTRING <- rook$QUERY_STRING
       if (private$QUERYSTRING != '') {
-        private$QUERYSTRING <- paste0('?', sub('^?', '', private$QUERYSTRING))
+        private$QUERYSTRING <- paste0('?', sub('^\\?', '', private$QUERYSTRING))
       }
       private$IP <- rook$REMOTE_ADDR
       private$QUERY <- private$parse_query(private$QUERYSTRING)

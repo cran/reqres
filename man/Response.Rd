@@ -167,7 +167,7 @@ missing and convert a non-raw body to a single character string.}
 }
 
 \examples{
-fake_rook <- test <- fiery::fake_request(
+fake_rook <- fiery::fake_request(
   'http://example.com/test?id=34632&question=who+is+hadley',
   content = 'This is elaborate ruse',
   headers = list(
@@ -193,6 +193,10 @@ res$attach(system.file('DESCRIPTION', package = 'reqres'))
 res$type
 res$body
 res$get_header('Content-Disposition')
+
+# Cleaning up connections
+rm(fake_rook, req, res)
+gc()
 
 }
 \seealso{
