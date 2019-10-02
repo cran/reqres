@@ -17,12 +17,14 @@ In order to facilitate parsing of http requests and creating
 \seealso{
 Useful links:
 \itemize{
+  \item \url{https://reqres.data-imaginist.com}
   \item \url{https://github.com/thomasp85/reqres#reqres}
   \item Report bugs at \url{https://github.com/thomasp85/reqres/issues}
 }
 
 }
 \author{
-\strong{Maintainer}: Thomas Lin Pedersen \email{thomasp85@gmail.com}
+\strong{Maintainer}: Thomas Lin Pedersen \email{thomasp85@gmail.com} (0000-0002-5147-4711)
 
 }
+\keyword{internal}
