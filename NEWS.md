@@ -1,6 +1,9 @@
-# reqres 0.2.3
+# reqres 0.2.5
 
-# reqres (development version)
+* General upkeep
+* Fix bug whith unnamed cookies (#12)
+
+# reqres 0.2.3
 
 * Fixed bug in Cookie parsing when cookie strings would include `=`
 * Added pkgdown site at https://reqres.data-imaginist.com

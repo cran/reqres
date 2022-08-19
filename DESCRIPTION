@@ -1,7 +1,7 @@
 Package: reqres
 Type: Package
 Title: Powerful Classes for HTTP Requests and Responses
-Version: 0.2.3
+Version: 0.2.5
 Authors@R: 
     c(person(given = "Thomas Lin",
              family = "Pedersen",
@@ -16,18 +16,17 @@ Description: In order to facilitate parsing of http requests and creating
     with 'httpuv' based web servers.
 License: MIT + file LICENSE
 Encoding: UTF-8
-LazyData: TRUE
 Depends: R (>= 2.10)
 Imports: R6, assertthat, stringi, urltools, tools, brotli, jsonlite,
         xml2, webutils, utils
-RoxygenNote: 6.1.1
+RoxygenNote: 7.2.1
 Suggests: fiery, testthat, covr
 URL: https://reqres.data-imaginist.com,
         https://github.com/thomasp85/reqres#reqres
 BugReports: https://github.com/thomasp85/reqres/issues
 NeedsCompilation: no
-Packaged: 2019-10-02 19:39:29 UTC; thomas
+Packaged: 2022-08-19 12:25:20 UTC; thomas
 Author: Thomas Lin Pedersen [cre, aut]
     (<https://orcid.org/0000-0002-5147-4711>)
 Repository: CRAN
-Date/Publication: 2019-10-02 20:00:03 UTC
+Date/Publication: 2022-08-19 12:50:03 UTC
