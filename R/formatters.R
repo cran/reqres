@@ -65,13 +65,19 @@ format_plain <- function(sep = '\n') {
 #' @rdname formatters
 #'
 #' @inheritParams xml2::write_xml
+#' @param root_name The name of the root element of the created xml
 #'
 #' @importFrom xml2 as_xml_document
 #' @export
-format_xml <- function(encoding = 'UTF-8', options = 'as_xml') {
+format_xml <- function(root_name = "document", encoding = 'UTF-8', options = 'as_xml') {
   options <- union('as_xml', options)
   function(x) {
-    as.character(as_xml_document(list(listify(x))), encoding = encoding, options = options)
+    if (is_bare_string(x)) return(x)
+    x <- listify(x)
+    if (!isTRUE(names(x) == root_name)) {
+      x <- list2(!!root_name := x)
+    }
+    as.character(as_xml_document(x), encoding = encoding, options = options)
   }
 }
 #' @rdname formatters
@@ -81,7 +87,13 @@ format_xml <- function(encoding = 'UTF-8', options = 'as_xml') {
 format_html <- function(encoding = 'UTF-8', options = 'as_html') {
   options <- union('as_html', options)
   function(x) {
-    as.character(as_xml_document(list(listify(x))), encoding = encoding, options = options)
+    if (is_bare_string(x)) return(x)
+    if (inherits(x, "shiny.tag")) return(as.character(x))
+    x <- listify(x)
+    if (!isTRUE(names(x) == "html")) {
+      x <- list(html = x)
+    }
+    as.character(as_xml_document(x), encoding = encoding, options = options)
   }
 }
 #' @rdname formatters
@@ -127,8 +139,10 @@ default_formatters <- list(
 
 # Format R objects to xml2 compliant lists
 listify <- function(x) {
-  if (is.scalar(x)) return(structure(list(as.character(x))))
+  if (length(x) == 1L && !is_list(x)) {
+    return(list(as.character(x)))
+  }
   if (!is.list(x)) x <- as.list(x)
-  if (!has_attr(x, 'names')) names(x) <- vapply(x, function(x) class(x)[1], character(1))
+  if (is.null(attr(x, 'names', exact = TRUE))) names(x) <- vapply(x, function(x) class(x)[1], character(1))
   lapply(x, listify)
 }

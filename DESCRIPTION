@@ -1,7 +1,7 @@
 Package: reqres
 Type: Package
 Title: Powerful Classes for HTTP Requests and Responses
-Version: 0.2.5
+Version: 1.0.0
 Authors@R: 
     c(person(given = "Thomas Lin",
              family = "Pedersen",
@@ -9,24 +9,27 @@ Authors@R:
              email = "thomasp85@gmail.com",
              comment = c(ORCID = "0000-0002-5147-4711")))
 Maintainer: Thomas Lin Pedersen <thomasp85@gmail.com>
-Description: In order to facilitate parsing of http requests and creating 
+Description: In order to facilitate parsing of http requests and creating
     appropriate responses this package provides two classes to handle a lot of
     the housekeeping involved in working with http exchanges. The infrastructure
     builds upon the 'rook' specification and is thus well suited to be combined
     with 'httpuv' based web servers.
 License: MIT + file LICENSE
 Encoding: UTF-8
-Depends: R (>= 2.10)
-Imports: R6, assertthat, stringi, urltools, tools, brotli, jsonlite,
-        xml2, webutils, utils
-RoxygenNote: 7.2.1
-Suggests: fiery, testthat, covr
+Depends: R (>= 3.5)
+Imports: R6, stringi, urltools, tools, brotli, jsonlite, xml2,
+        webutils, utils, cli, rlang, lifecycle, base64enc, sodium,
+        promises, mirai
+RoxygenNote: 7.3.2
+Suggests: fiery, testthat (>= 3.0.0), covr, keyring, shiny
 URL: https://reqres.data-imaginist.com,
-        https://github.com/thomasp85/reqres#reqres
+        https://github.com/thomasp85/reqres
 BugReports: https://github.com/thomasp85/reqres/issues
-NeedsCompilation: no
-Packaged: 2022-08-19 12:25:20 UTC; thomas
-Author: Thomas Lin Pedersen [cre, aut]
-    (<https://orcid.org/0000-0002-5147-4711>)
+Config/testthat/edition: 3
+Config/build/compilation-database: true
+NeedsCompilation: yes
+Packaged: 2025-08-20 06:37:30 UTC; thomas
+Author: Thomas Lin Pedersen [cre, aut] (ORCID:
+    <https://orcid.org/0000-0002-5147-4711>)
 Repository: CRAN
-Date/Publication: 2022-08-19 12:50:03 UTC
+Date/Publication: 2025-08-20 07:30:08 UTC

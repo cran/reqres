@@ -26,10 +26,7 @@ Much of the functionality is inspired by the Request class in Express.js, so
 complement this document. As \code{reqres} is build on top of the
 \href{https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md}{Rook specifications}
 the \code{Response} object can be converted to a compliant list object to be
-passed on to e.g. the \code{httpuv} handler.
-}
-\details{
-A \code{Response} object is always created
+passed on to e.g. the \code{httpuv} handler. A \code{Response} object is always created
 as a response to a \code{Request} object and contains a reference to the
 originating \code{Request} object. A \code{Response} is always initialized with a
 404 Not Found code, an empty string as body and the \code{Content-Type} header set
@@ -97,74 +94,6 @@ responding to.}
 }
 }
 
-\section{Methods}{
-
-The following methods are available in a \code{Response} object:
-
-\describe{
-\item{\code{set_header(name, value)}}{Sets the header given by \code{name}. \code{value}
-will be converted to character. A header will be added for each element in
-\code{value}. Use \code{append_header()} for setting headers without overwriting
-existing ones.}
-\item{\code{get_header(name)}}{Returns the header(s) given by \code{name}}
-\item{\code{remove_header(name)}}{Removes all headers given by \code{name}}
-\item{\code{has_header(name)}}{Test for the existence of any header given by
-\code{name}}
-\item{\code{append_header(name, value)}}{Adds an additional header given by
-\code{name} with the value given by \code{value}. If the header does not exist yet it
-will be created.}
-\item{\code{set_data(key, value)}}{Adds \code{value} to the internal data store and
-stores it with \code{key}}
-\item{\code{get_data(key)}}{Retrieves the data stored under \code{key} in the internal
-data store.}
-\item{\code{remove_data(key)}}{Removes the data stored under \code{key} in the
-internal data store.}
-\item{\code{has_data(key)}}{Queries whether the data store has an entry given by
-\code{key}}
-\item{\code{attach(file, filename=basename(file), type=NULL)}}{Sets the body to
-the file given by \code{file} and marks the response as a download by setting the
-\code{Content-Disposition} to \verb{attachment; filename=<filename>}. Use the \code{type}
-argument to overwrite the automatic type inference from the file extension.}
-\item{\code{status_with_text(code)}}{Sets the status to \code{code} and sets the body
-to the associated status code description (e.g. \verb{Bad Gateway} for \code{502L})}
-\item{\code{set_cookie(name, value, encode = TRUE, expires = NULL, http_only = NULL, max_age = NULL, path = NULL, secure = NULL, same_site = NULL)}}{Adds
-the cookie given by \code{name} to the given \code{value}, optionally url encoding it,
-along with any additional directives. See
-\url{https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie} for a
-description of the different directives. If the cookie already exists it
-will be overwritten. The validity of the directives will automatically be
-checked. \code{expires} expects a POSIXct object, \code{http_only} and \code{secure} expect
-a logical, \code{max_age} expects an integer, \code{path} a string, and \code{same_site}
-either \code{"Lax"} or \code{"Strict"}}
-\item{\code{remove_cookie(name)}}{Removes the cookie named \code{name} from the
-response.}
-\item{\code{has_cookie(name)}}{Queries whether the response contains a cookie
-named \code{name}}
-\item{\code{set_links(...)}}{Sets the \code{Link} header based on the named arguments
-passed to \code{...}. The names will be used for the \code{rel} directive.}
-\item{\code{format(..., autofail = TRUE, compress = TRUE)}}{Based on the
-formatters passed in through \code{...} content negotiation is performed with
-request and the preferred formatter is chosen. The \code{Content-Type} header is
-set automatically. If \code{compress = TRUE} the
-\code{compress()} method will be called after formatting. If an error is
-encountered and \code{autofail = TRUE} the response will be set to \code{500}. If a
-formatter is not found and \code{autofail = TRUE} the response will be set to
-\code{406}. If formatting is successful it will return \code{TRUE}, if not it will
-return \code{FALSE}}
-\item{\code{compress(priority = c('gzip', 'deflate', 'br', 'identity'))}}{Based
-on the provided priority, an encoding is negotiated with the request and
-applied. The \code{Content-Encoding} header is set to the chosen compression
-algorithm.}
-\item{\code{content_length()}}{Calculates the length (in bytes) of the body.
-This is the number that goes into the \code{Content-Length} header. Note that the
-\code{Content-Length} header is set automatically by \code{httpuv} so this method
-should only be called if the response size is needed for other reasons.}
-\item{\code{as_list()}}{Converts the object to a list for further processing by
-a Rook compliant server such as \code{httpuv}. Will set \code{Content-Type} header if
-missing and convert a non-raw body to a single character string.}
-}
-}
-
 \examples{
 fake_rook <- fiery::fake_request(
   'http://example.com/test?id=34632&question=who+is+hadley',
@@ -201,6 +130,54 @@ gc()
 \seealso{
 \code{\link{Request}} for handling http requests
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{status}}{Gets or sets the status code of the response. Is
+initialised with \code{404L}}
+
+\item{\code{body}}{Set or get he body of the response. If it is a character
+vector with a single element named \code{'file'} it will be interpreted as the
+location of a file. It is better to use the \code{file} field for creating a
+response referencing a file as it will automatically set the correct
+headers.}
+
+\item{\code{file}}{Set or get the location of a file that should be used as the
+body of the response. If the body is not referencing a file (but contains
+something else) it will return \code{NULL}. The \code{Content-Type} header will
+automatically be inferred from the file extension, if known. If unknown
+it will defaults to \code{application/octet-stream}. If the file has no
+extension it will be \code{text/plain}. Existence of the file will be checked.}
+
+\item{\code{type}}{Get or sets the \code{Content-Type} header of the response based
+on a file extension or mime-type.}
+
+\item{\code{request}}{Get the original \code{Request} object that the object is
+responding to.}
+
+\item{\code{formatter}}{Get the registered formatter for the response body.}
+
+\item{\code{is_formatted}}{Has the body been formatted}
+
+\item{\code{data_store}}{Access the environment that holds the response data store}
+
+\item{\code{session}}{The content of the session cookie. If session cookies has
+not been activated it will be an empty write-protected list. If session
+cookies are activated but the request did not contain one it will be an
+empty list. The content of this field will be send encrypted as part of
+the response according to the cookie settings in
+\verb{$session_cookie_settings}. This field is reflected in the
+\code{Request$session} field and using either produces the same result}
+
+\item{\code{session_cookie_settings}}{Get the settings for the session cookie as
+they were provided during initialisation of the request
+cookie \emph{Immutable}}
+
+\item{\code{has_key}}{Query whether the request was initialised with an
+encryption key \emph{Immutable}}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -217,16 +194,23 @@ gc()
 \item \href{#method-Response-has_data}{\code{Response$has_data()}}
 \item \href{#method-Response-timestamp}{\code{Response$timestamp()}}
 \item \href{#method-Response-attach}{\code{Response$attach()}}
+\item \href{#method-Response-as_download}{\code{Response$as_download()}}
 \item \href{#method-Response-status_with_text}{\code{Response$status_with_text()}}
+\item \href{#method-Response-problem}{\code{Response$problem()}}
 \item \href{#method-Response-set_cookie}{\code{Response$set_cookie()}}
 \item \href{#method-Response-remove_cookie}{\code{Response$remove_cookie()}}
+\item \href{#method-Response-clear_cookie}{\code{Response$clear_cookie()}}
 \item \href{#method-Response-has_cookie}{\code{Response$has_cookie()}}
 \item \href{#method-Response-set_links}{\code{Response$set_links()}}
 \item \href{#method-Response-format}{\code{Response$format()}}
+\item \href{#method-Response-set_formatter}{\code{Response$set_formatter()}}
 \item \href{#method-Response-compress}{\code{Response$compress()}}
 \item \href{#method-Response-content_length}{\code{Response$content_length()}}
 \item \href{#method-Response-as_list}{\code{Response$as_list()}}
 \item \href{#method-Response-as_message}{\code{Response$as_message()}}
+\item \href{#method-Response-encode_string}{\code{Response$encode_string()}}
+\item \href{#method-Response-decode_string}{\code{Response$decode_string()}}
+\item \href{#method-Response-reset}{\code{Response$reset()}}
 \item \href{#method-Response-clone}{\code{Response$clone()}}
 }
 }
@@ -234,105 +218,206 @@ gc()
 \if{html}{\out{<a id="method-Response-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-new}{}}}
 \subsection{Method \code{new()}}{
+Create a new response from a Request object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$new(request)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{request}}{The \code{Request} object that the \code{Response} is responding to}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-print"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-print}{}}}
 \subsection{Method \code{print()}}{
+Pretty printing of the object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$print(...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-set_header"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-set_header}{}}}
 \subsection{Method \code{set_header()}}{
+Sets the header given by \code{name}. \code{value} will be converted
+to character. A header will be added for each element in \code{value}. Use
+\code{append_header()} for setting headers without overwriting existing ones.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$set_header(name, value)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to set}
+
+\item{\code{value}}{The value to assign to the header}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-get_header"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-get_header}{}}}
 \subsection{Method \code{get_header()}}{
+Returns the header(s) given by \code{name}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$get_header(name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to retrieve the value for}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-remove_header"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-remove_header}{}}}
 \subsection{Method \code{remove_header()}}{
+Removes all headers given by \code{name}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$remove_header(name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to remove}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-has_header"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-has_header}{}}}
 \subsection{Method \code{has_header()}}{
+Test for the existence of any header given by \code{name}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$has_header(name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to look for}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-append_header"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-append_header}{}}}
 \subsection{Method \code{append_header()}}{
+Adds an additional header given by \code{name} with the value
+given by \code{value}. If the header does not exist yet it will be created.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$append_header(name, value)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to append to}
+
+\item{\code{value}}{The value to assign to the header}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-set_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-set_data}{}}}
 \subsection{Method \code{set_data()}}{
+Adds \code{value} to the internal data store and stores it with
+\code{key}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$set_data(key, value)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{The identifier of the data you set}
+
+\item{\code{value}}{An R object}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-get_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-get_data}{}}}
 \subsection{Method \code{get_data()}}{
+Retrieves the data stored under \code{key} in the internal data
+store.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$get_data(key)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{The identifier of the data you wish to retrieve}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-remove_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-remove_data}{}}}
 \subsection{Method \code{remove_data()}}{
+Removes the data stored under \code{key} in the internal data
+store.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$remove_data(key)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{The identifier of the data you wish to remove}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-has_data"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-has_data}{}}}
 \subsection{Method \code{has_data()}}{
+Queries whether the data store has an entry given by \code{key}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$has_data(key)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{key}}{The identifier of the data you wish to look for}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-timestamp"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-timestamp}{}}}
 \subsection{Method \code{timestamp()}}{
+Set the \code{Date} header to the current time
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$timestamp()}\if{html}{\out{</div>}}
 }
@@ -342,24 +427,116 @@ gc()
 \if{html}{\out{<a id="method-Response-attach"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-attach}{}}}
 \subsection{Method \code{attach()}}{
+Sets the body to the file given by \code{file} and marks the
+response as a download by setting the \code{Content-Disposition} to
+\verb{attachment; filename=<filename>}. Use the \code{type} argument to overwrite
+the automatic type inference from the file extension.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$attach(file, filename = basename(file), type = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{file}}{The path to a file}
+
+\item{\code{filename}}{The name of the file as it will appear to the client}
+
+\item{\code{type}}{The file type. If not given it will be inferred}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-as_download"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-as_download}{}}}
+\subsection{Method \code{as_download()}}{
+Marks the response as a downloadable file, rather than data
+to be shown in the browser
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$as_download(filename = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{filename}}{Optional filename as hint for the client}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-status_with_text"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-status_with_text}{}}}
 \subsection{Method \code{status_with_text()}}{
+Sets the status to \code{code} and sets the body to the
+associated status code description (e.g. \verb{Bad Gateway} for \code{502L})
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Response$status_with_text(code)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Response$status_with_text(code, clear_headers = FALSE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{code}}{The status code to set}
+
+\item{\code{clear_headers}}{Should all currently set headers be cleared (useful
+for converting a response to an error halfway through processing)}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-problem"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-problem}{}}}
+\subsection{Method \code{problem()}}{
+Signals an API problem using the HTTP Problems spec
+\href{https://datatracker.ietf.org/doc/html/rfc9457}{RFC 9457}. This should
+only be used in cases where returning a bare response code is
+insufficient to describe the issue.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$problem(
+  code,
+  detail,
+  title = NULL,
+  type = NULL,
+  instance = NULL,
+  clear_headers = TRUE
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{code}}{The HTTP status code to use}
+
+\item{\code{detail}}{A string detailing the problem. Make sure the information
+given does not pose a security risk}
+
+\item{\code{title}}{A human-readable title of the issue. Should not vary from
+instance to instance of the specific issue. If \code{NULL} then the status
+code title is used}
+
+\item{\code{type}}{A URI that uniquely identifies this type of problem. The URI
+must resolve to an HTTP document describing the problem in human readable
+text. If \code{NULL}, the most recent link to the given status code definition
+is used}
+
+\item{\code{instance}}{A unique identifier of the specific instance of this
+problem that can be used for further debugging. Can be omitted.}
+
+\item{\code{clear_headers}}{Should all currently set headers be cleared}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-set_cookie"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-set_cookie}{}}}
 \subsection{Method \code{set_cookie()}}{
+Sets a cookie on the response. See
+\url{https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Set-Cookie}
+for a longer description
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$set_cookie(
   name,
@@ -374,56 +551,201 @@ gc()
 )}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the cookie}
+
+\item{\code{value}}{The value of the cookie}
+
+\item{\code{encode}}{Should \code{value} be url encoded}
+
+\item{\code{expires}}{A POSIXct object given the expiration time of the cookie}
+
+\item{\code{http_only}}{Should the cookie only be readable by the browser}
+
+\item{\code{max_age}}{The number of seconds to elapse before the cookie expires}
+
+\item{\code{path}}{The URL path this cookie is related to}
+
+\item{\code{secure}}{Should the cookie only be send over https}
+
+\item{\code{same_site}}{Either \code{"Lax"}, \code{"Strict"}, or \code{"None"} indicating
+how the cookie can be send during cross-site requests. If this is set to
+\code{"None"} then \code{secure} \emph{must} also be set to \code{TRUE}}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-remove_cookie"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-remove_cookie}{}}}
 \subsection{Method \code{remove_cookie()}}{
+Removes the cookie named \code{name} from the response.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$remove_cookie(name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the cookie to remove}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-clear_cookie"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-clear_cookie}{}}}
+\subsection{Method \code{clear_cookie()}}{
+Request the client to delete the given cookie
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$clear_cookie(name)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the cookie to delete}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-has_cookie"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-has_cookie}{}}}
 \subsection{Method \code{has_cookie()}}{
+Queries whether the response contains a cookie named \code{name}
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$has_cookie(name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the cookie to look for}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-set_links"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-set_links}{}}}
 \subsection{Method \code{set_links()}}{
+Sets the \code{Link} header based on the named arguments passed
+to \code{...}. The names will be used for the \code{rel} directive.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$set_links(...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{key-value pairs for the links}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-format"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-format}{}}}
 \subsection{Method \code{format()}}{
+Based on the formatters passed in through \code{...} content
+negotiation is performed with the request and the preferred formatter is
+chosen and applied. The \code{Content-Type} header is set automatically. If
+\code{compress = TRUE} the \code{compress()} method will be called after formatting.
+If an error is encountered and \code{autofail = TRUE} the response will be set
+to \code{500}. If a formatter is not found and \code{autofail = TRUE} the response
+will be set to \code{406}. If formatting is successful it will return \code{TRUE},
+if not it will return \code{FALSE}
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Response$format(..., autofail = TRUE, compress = TRUE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Response$format(..., autofail = TRUE, compress = TRUE, default = NULL)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{A range of formatters}
+
+\item{\code{autofail}}{Automatically populate the response if formatting fails}
+
+\item{\code{compress}}{Should \verb{$compress()} be run in the end}
+
+\item{\code{default}}{The name of the default formatter, which will be used if
+none match. Setting this will avoid autofailing with 406 as a formatter
+is always selected}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-set_formatter"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-set_formatter}{}}}
+\subsection{Method \code{set_formatter()}}{
+Based on the formatters passed in through \code{...} content
+negotiation is performed with the request and the preferred formatter is
+chosen. The \code{Content-Type} header is set automatically. If a formatter is
+not found and \code{autofail = TRUE} the response will be set to \code{406}. The
+found formatter is registered with the response and will be applied just
+before handing off the response to httpuv, unless the response has been
+manually formatted.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$set_formatter(..., autofail = TRUE, default = NULL)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{A range of formatters}
+
+\item{\code{autofail}}{Automatically populate the response if formatting fails}
+
+\item{\code{default}}{The name of the default formatter, which will be used if
+none match. Setting this will avoid autofailing with 406 as a formatter
+is always selected}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-compress"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-compress}{}}}
 \subsection{Method \code{compress()}}{
+Based on the provided priority, an encoding is negotiated
+with the request and applied. The \code{Content-Encoding} header is set to the
+chosen compression algorithm.
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Response$compress(priority = c("gzip", "deflate", "br", "identity"))}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Response$compress(
+  priority = c("gzip", "deflate", "br", "identity"),
+  force = FALSE,
+  limit = NULL
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{priority}}{A vector of compression types ranked by the servers
+priority}
+
+\item{\code{force}}{Should compression be done even if the type is known to be
+uncompressible}
+
+\item{\code{limit}}{The size limit in bytes for performing compression. If
+\code{NULL} then the \code{compression_limit} setting from the initialization of
+the request is used}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Response-content_length"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-content_length}{}}}
 \subsection{Method \code{content_length()}}{
+Calculates the length (in bytes) of the body. This is the
+number that goes into the \code{Content-Length} header. Note that the
+\code{Content-Length} header is set automatically by \code{httpuv} so this method
+should only be called if the response size is needed for other reasons.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$content_length()}\if{html}{\out{</div>}}
 }
@@ -433,6 +755,11 @@ gc()
 \if{html}{\out{<a id="method-Response-as_list"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-as_list}{}}}
 \subsection{Method \code{as_list()}}{
+Converts the object to a list for further processing by
+a Rook compliant server such as \code{httpuv}. Will set \code{Content-Type} header
+if missing and convert a non-raw body to a single character string. Will
+apply the formatter set by \code{set_formatter()} unless the body has already
+been formatted. Will add a Date header if none exist.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$as_list()}\if{html}{\out{</div>}}
 }
@@ -442,8 +769,63 @@ gc()
 \if{html}{\out{<a id="method-Response-as_message"></a>}}
 \if{latex}{\out{\hypertarget{method-Response-as_message}{}}}
 \subsection{Method \code{as_message()}}{
+Prints a HTTP representation of the response to the output
+stream.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Response$as_message()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-encode_string"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-encode_string}{}}}
+\subsection{Method \code{encode_string()}}{
+base64-encode a string. If a key has been provided during
+initialisation the string is first encrypted and the final result is a
+combination of the encrypted text and the nonce, both base64 encoded and
+combined with a \code{"_"}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$encode_string(val)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{val}}{A single string to encrypt}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-decode_string"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-decode_string}{}}}
+\subsection{Method \code{decode_string()}}{
+base64-decodes a string. If a key has been provided during
+initialisation the input is first split by \code{"_"} and then the two parts
+are base64 decoded and decrypted. Otherwise the input is base64-decoded
+as-is. It will always hold that
+\code{val == decode_string(encode_string(val))}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$decode_string(val)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{val}}{A single string to encrypt}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Response-reset"></a>}}
+\if{latex}{\out{\hypertarget{method-Response-reset}{}}}
+\subsection{Method \code{reset()}}{
+Resets the content of the response. Is mainly used by the
+\code{clear()} method of the associated request, and should seldom be called
+directly
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Response$reset()}\if{html}{\out{</div>}}
 }
 
 }

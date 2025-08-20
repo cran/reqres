@@ -42,116 +42,6 @@ generator:
 \tabular{l}{
 \code{req <- Request$new(rook, trust = FALSE)}
 }
-
-\strong{Arguments}
-\tabular{lll}{
-\code{rook} \tab  \tab The rook request that the new object should wrap\cr
-\code{trust} \tab  \tab Is this request trusted blindly. If \code{TRUE} \verb{X-Forwarded-*} headers will be returned when querying host, ip, and protocol
-}
-}
-
-\section{Fields}{
-
-The following fields are accessible in a \code{Request} object:
-
-\describe{
-\item{\code{trust}}{A logical indicating whether the request is trusted. \emph{Mutable}}
-\item{\code{method}}{A string indicating the request method (in lower case, e.g.
-'get', 'put', etc.). \emph{Immutable}}
-\item{\code{body}}{An object holding the body of the request. This is an empty
-string by default and needs to be populated using the \code{set_body()} method
-(this is often done using a body parser that accesses the Rook$input
-stream). \emph{Immutable}}
-\item{\code{cookies}}{Access a named list of all cookies in the request. These
-have been URI decoded. \emph{Immutable}}
-\item{\code{headers}}{Access a named list of all headers in the request. In order
-to follow R variable naming standards \code{-} have been substituted with \verb{_}.
-Use the \code{get_header()} method to lookup based on the correct header name.
-\emph{Immutable}}
-\item{\code{host}}{Return the domain of the server given by the "Host" header if
-\code{trust == FALSE}. If \code{trust == true} returns the \code{X-Forwarded-Host} instead.}
-\item{\code{ip}}{Returns the remote address of the request if \code{trust == FALSE}.
-if \code{trust == TRUE} it will instead return the first value of the
-\code{X-Forwarded-For} header. \emph{Immutable}}
-\item{\code{ips}}{If \code{trust == TRUE} it will return the full list of ips in the
-\code{X-Forwarded-For} header. If \code{trust == FALSE} it will return an empty
-vector. \emph{Immutable}}
-\item{\code{protocol}}{Returns the protocol (e.g. 'http') used for the request.
-If \code{trust == TRUE} it will use the value of the \code{X-Forwarded-Proto} header.
-\emph{Immutable}}
-\item{\code{root}}{The mount point of the application receiving this request. Can
-be empty if the application is mounted on the server root. \emph{Immutable}}
-\item{\code{path}}{The part of the url following the root. Defines the local
-target of the request (independent of where it is mounted). \emph{Immutable}}
-\item{\code{url}}{The full URL of the request. \emph{Immutable}}
-\item{\code{query}}{The query string of the request (anything following "?" in
-the URL) parsed into a named list. The query has been url decoded and "+"
-has been substituted with space. Multiple queries are expected to be
-separated by either "&" or "|". \emph{Immutable}}
-\item{\code{querystring}}{The unparsed query string of the request, including
-"?". If no query string exists it will be \code{""} rather than \code{"?"}}
-\item{\code{xhr}}{A logical indicating whether the \code{X-Requested-With} header
-equals \code{XMLHttpRequest} thus indicating that the request was performed using
-a JavaScript library such as jQuery. \emph{Immutable}}
-\item{\code{secure}}{A logical indicating whether the request was performed using
-a secure connection, i.e. \code{protocol == 'https'}. \emph{Immutable}}
-\item{\code{origin}}{The original object used to create the \code{Request} object. As
-\code{reqres} currently only works with rook this will always return the original
-rook object. \emph{Immutable}, though the content of the rook object itself might
-be manipulated as it is an environment.}
-\item{\code{response}}{If a \code{Response} object has been created for this request
-it is accessible through this field. \emph{Immutable}}
-}
-}
-
-\section{Methods}{
-
-The following methods are available in a \code{Request} object:
-
-\describe{
-\item{\code{set_body(content)}}{Sets the content of the request body. This method
-should mainly be used in concert with a body parser that reads the
-\code{rook$input} stream}
-\item{\code{set_cookies(cookies)}}{Sets the cookies of the request. The cookies
-are automatically parsed and populated, so this method is mainly available
-to facilitate cookie signing and encryption}
-\item{\code{get_header(name)}}{Get the header of the specified name.}
-\item{\code{accepts(types)}}{Given a vector of response content types it returns
-the preferred one based on the \code{Accept} header.}
-\item{\code{accepts_charsets(charsets)}}{Given a vector of possible character
-encodings it returns the preferred one based on the \code{Accept-Charset}
-header.}
-\item{\code{accepts_encoding(encoding)}}{Given a vector of possible content
-encodings (usually compression algorithms) it selects the preferred one
-based on the \code{Accept-Encoding} header. If there is no match it will return
-\code{"identity"} signaling no compression.}
-\item{\code{accepts_language(language)}}{Given a vector of possible content
-languages it selects the best one based on the \code{Accept-Language} header.}
-\item{\code{is(type)}}{Queries whether the body of the request is in a given
-format by looking at the \code{Content-Type} header. Used for selecting the best
-parsing method.}
-\item{\code{respond()}}{Creates a new \code{Response} object from the request}
-\item{\code{parse(..., autofail = TRUE)}}{Based on provided parsers it selects
-the appropriate one by looking at the \code{Content-Type} header and assigns the
-result to the request body. A parser is a function accepting a raw vector,
-and a named list of additional directives,
-and returns an R object of any kind (if the parser knows the input to be
-plain text, simply wrap it in \code{\link[=rawToChar]{rawToChar()}}). If the body is compressed, it
-will be decompressed based on the \code{Content-Encoding} header prior to passing
-it on to the parser. See \link{parsers} for a list of pre-supplied parsers.
-Parsers are either supplied in a named list or as named arguments to the
-parse method. The names should correspond to mime types or known file
-extensions. If \code{autofail = TRUE} the response will be set with the correct
-error code if parsing fails. \code{parse()} returns \code{TRUE} if parsing was
-successful and \code{FALSE} if not}
-\item{\code{parse_raw(autofail = TRUE)}}{This is a simpler version of the
-\code{parse()} method. It will attempt to decompress the body and set the \code{body}
-field to the resulting raw vector. It is then up to the server to decide how
-to handle the payload. It returns \code{TRUE} if successful and \code{FALSE}
-otherwise.}
-\item{\code{as_message()}}{Prints a HTTP representation of the request to the
-output stream.}
-}
 }
 
 \examples{
@@ -186,6 +76,111 @@ gc()
 \seealso{
 \code{\link{Response}} for handling http responses
 }
+\section{Active bindings}{
+\if{html}{\out{<div class="r6-active-bindings">}}
+\describe{
+\item{\code{trust}}{A logical indicating whether the request is trusted. \emph{Mutable}}
+
+\item{\code{method}}{A string indicating the request method (in lower case, e.g.
+'get', 'put', etc.). \emph{Immutable}}
+
+\item{\code{body}}{An object holding the body of the request. This is an empty
+string by default and needs to be populated using the \code{set_body()} method
+(this is often done using a body parser that accesses the Rook$input
+stream). \emph{Immutable}}
+
+\item{\code{session}}{The content of the session cookie. If session cookies has
+not been activated it will be an empty write-protected list. If session
+cookies are activated but the request did not contain one it will be an
+empty list. The content of this field will be send encrypted as part of
+the response according to the cookie settings in
+\verb{$session_cookie_settings}. This field is reflected in the
+\code{Response$session} field and using either produces the same result}
+
+\item{\code{has_session_cookie}}{Query whether the request came with a session
+cookie \emph{Immutable}}
+
+\item{\code{session_cookie_settings}}{Get the settings for the session cookie as
+they were provided during initialisation
+cookie \emph{Immutable}}
+
+\item{\code{has_key}}{Query whether the request was initialised with an
+encryption key \emph{Immutable}}
+
+\item{\code{compression_limit}}{Query the compression limit the request was
+initialized with \emph{Immutable}}
+
+\item{\code{cookies}}{Access a named list of all cookies in the request. These
+have been URI decoded. \emph{Immutable}}
+
+\item{\code{headers}}{Access a named list of all headers in the request. In
+order to follow R variable naming standards \code{-} have been substituted
+with \verb{_}. Use the \code{get_header()} method to lookup based on the correct
+header name. \emph{Immutable}}
+
+\item{\code{host}}{Return the domain of the server given by the "Host" header if
+\code{trust == FALSE}. If \code{trust == true} returns the \code{X-Forwarded-Host}
+instead. \emph{Immutable}}
+
+\item{\code{ip}}{Returns the remote address of the request if \code{trust == FALSE}.
+If \code{trust == TRUE} it will instead return the first value of the
+\code{X-Forwarded-For} header. \emph{Immutable}}
+
+\item{\code{ips}}{If \code{trust == TRUE} it will return the full list of ips in the
+\code{X-Forwarded-For} header. If \code{trust == FALSE} it will return an empty
+vector. \emph{Immutable}}
+
+\item{\code{protocol}}{Returns the protocol (e.g. 'http') used for the request.
+If \code{trust == TRUE} it will use the value of the \code{X-Forwarded-Proto} header.
+\emph{Immutable}}
+
+\item{\code{root}}{The mount point of the application receiving this request.
+Can be empty if the application is mounted on the server root.
+\emph{Immutable}}
+
+\item{\code{path}}{The part of the url following the root. Defines the local
+target of the request (independent of where it is mounted). \emph{Immutable}}
+
+\item{\code{url}}{The full URL of the request. \emph{Immutable}}
+
+\item{\code{query}}{The query string of the request (anything following "?" in
+the URL) parsed into a named list. The query has been url decoded and "+"
+has been substituted with space. Multiple queries are expected to be
+separated by either "&" or "|". \emph{Immutable}}
+
+\item{\code{query_delim}}{The delimiter used for specifying multiple values in a
+query. If \code{NULL} then queries are expected to contain multiple key-value
+pairs for the same key in order to provide an array, e.g.
+\code{?arg1=3&arg1=7}. If setting it to \verb{",""}, \code{"|"}, or \code{" "} then an array
+can be provided in a single key-value pair, e.g. \code{?arg1=3|7}}
+
+\item{\code{querystring}}{The unparsed query string of the request, including
+"?". If no query string exists it will be \code{""} rather than \code{"?"}}
+
+\item{\code{xhr}}{A logical indicating whether the \code{X-Requested-With} header
+equals \code{XMLHttpRequest} thus indicating that the request was performed
+using JavaScript library such as jQuery. \emph{Immutable}}
+
+\item{\code{secure}}{A logical indicating whether the request was performed
+using a secure connection, i.e. \code{protocol == 'https'}. \emph{Immutable}}
+
+\item{\code{origin}}{The original object used to create the \code{Request} object. As
+\code{reqres} currently only works with rook this will always return the
+original rook object. Changing this will force the request to reparse
+itself.}
+
+\item{\code{response}}{If a \code{Response} object has been created for this request
+it is accessible through this field. \emph{Immutable}}
+
+\item{\code{locked}}{Set the \code{locked} status on the request. This flag does not
+result in any different behaviour in the request but can be used by
+frameworks to signal that the request should not be altered in some way}
+
+\item{\code{response_headers}}{The list of headers the response is prepopulated
+with \emph{Immutable}}
+}
+\if{html}{\out{</div>}}
+}
 \section{Methods}{
 \subsection{Public methods}{
 \itemize{
@@ -199,10 +194,15 @@ gc()
 \item \href{#method-Request-accepts_language}{\code{Request$accepts_language()}}
 \item \href{#method-Request-is}{\code{Request$is()}}
 \item \href{#method-Request-get_header}{\code{Request$get_header()}}
+\item \href{#method-Request-has_header}{\code{Request$has_header()}}
 \item \href{#method-Request-respond}{\code{Request$respond()}}
 \item \href{#method-Request-parse}{\code{Request$parse()}}
 \item \href{#method-Request-parse_raw}{\code{Request$parse_raw()}}
 \item \href{#method-Request-as_message}{\code{Request$as_message()}}
+\item \href{#method-Request-encode_string}{\code{Request$encode_string()}}
+\item \href{#method-Request-decode_string}{\code{Request$decode_string()}}
+\item \href{#method-Request-clear}{\code{Request$clear()}}
+\item \href{#method-Request-forward}{\code{Request$forward()}}
 \item \href{#method-Request-clone}{\code{Request$clone()}}
 }
 }
@@ -210,96 +210,238 @@ gc()
 \if{html}{\out{<a id="method-Request-new"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-new}{}}}
 \subsection{Method \code{new()}}{
+Create a new request from a rook object
 \subsection{Usage}{
-\if{html}{\out{<div class="r">}}\preformatted{Request$new(rook, trust = FALSE)}\if{html}{\out{</div>}}
+\if{html}{\out{<div class="r">}}\preformatted{Request$new(
+  rook,
+  trust = FALSE,
+  key = NULL,
+  session_cookie = NULL,
+  compression_limit = 0,
+  query_delim = NULL,
+  response_headers = list()
+)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{rook}}{The \href{https://github.com/jeffreyhorner/Rook/blob/a5e45f751/README.md}{rook} object to base the request on}
+
+\item{\code{trust}}{Is this request trusted blindly. If \code{TRUE} \verb{X-Forwarded-*}
+headers will be returned when querying host, ip, and protocol}
+
+\item{\code{key}}{A 32-bit secret key as a hex encoded string or a raw vector to
+use for \verb{$encode_string()} and \verb{$decode_string()} and by extension to
+encrypt a session cookie. It must be given to turn on session cookie
+support. A valid key can be generated using \code{\link[=random_key]{random_key()}}. NEVER STORE
+THE KEY IN PLAIN TEXT. Optimalle use the keyring package to store it or
+set it as an environment variable}
+
+\item{\code{session_cookie}}{Settings for the session cookie created using
+\code{\link[=session_cookie]{session_cookie()}}. Will be ignored if \code{key} is not provided to ensure
+session cookies are properly encrypted}
+
+\item{\code{compression_limit}}{The size threshold in bytes for trying to
+compress the response body (it is still dependant on content negotiation)}
+
+\item{\code{query_delim}}{The delimiter to split array-type query arguments by}
+
+\item{\code{response_headers}}{A list of headers the response should be
+prepopulated with. All names must be in lower case and all elements must
+be character vectors. This is not checked but assumed}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-print"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-print}{}}}
 \subsection{Method \code{print()}}{
+Pretty printing of the object
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$print(...)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-set_body"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-set_body}{}}}
 \subsection{Method \code{set_body()}}{
+Sets the content of the request body. This method should
+mainly be used in concert with a body parser that reads the \code{rook$input}
+stream
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$set_body(content)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{content}}{An R object representing the body of the request}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-set_cookies"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-set_cookies}{}}}
 \subsection{Method \code{set_cookies()}}{
+Sets the cookies of the request. The cookies are
+automatically parsed and populated, so this method is mainly available
+to facilitate cookie signing and encryption
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$set_cookies(cookies)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{cookies}}{A named list of cookie values}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-accepts"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-accepts}{}}}
 \subsection{Method \code{accepts()}}{
+Given a vector of response content types it returns the
+preferred one based on the \code{Accept} header.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$accepts(types)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{types}}{A vector of types}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-accepts_charsets"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-accepts_charsets}{}}}
 \subsection{Method \code{accepts_charsets()}}{
+Given a vector of possible character encodings it returns
+the preferred one based on the \code{Accept-Charset} header.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$accepts_charsets(charsets)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{charsets}}{A vector of charsets}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-accepts_encoding"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-accepts_encoding}{}}}
 \subsection{Method \code{accepts_encoding()}}{
+Given a vector of possible content encodings (usually
+compression algorithms) it selects the preferred one based on the
+\code{Accept-Encoding} header. If there is no match it will return \code{"identity"}
+signaling no compression.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$accepts_encoding(encoding)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{encoding}}{A vector of encoding names}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-accepts_language"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-accepts_language}{}}}
 \subsection{Method \code{accepts_language()}}{
+Given a vector of possible content languages it selects the
+best one based on the \code{Accept-Language} header.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$accepts_language(language)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{language}}{A vector of languages}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-is"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-is}{}}}
 \subsection{Method \code{is()}}{
+Queries whether the body of the request is in a given format
+by looking at the \code{Content-Type} header. Used for selecting the best
+parsing method.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$is(type)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{type}}{A vector of content types to check for. Can be fully
+qualified MIME types, a file extension, or a mime type with wildcards}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-get_header"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-get_header}{}}}
 \subsection{Method \code{get_header()}}{
+Get the header of the specified name.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$get_header(name)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to get}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Request-has_header"></a>}}
+\if{latex}{\out{\hypertarget{method-Request-has_header}{}}}
+\subsection{Method \code{has_header()}}{
+Test for the existence of any header given by \code{name}
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Request$has_header(name)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{name}}{The name of the header to look for}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-respond"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-respond}{}}}
 \subsection{Method \code{respond()}}{
+Creates a new \code{Response} object from the request
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$respond()}\if{html}{\out{</div>}}
 }
@@ -309,28 +451,162 @@ gc()
 \if{html}{\out{<a id="method-Request-parse"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-parse}{}}}
 \subsection{Method \code{parse()}}{
+Based on provided parsers it selects the appropriate one by
+looking at the \code{Content-Type} header and assigns the result to the
+request body. A parser is a function accepting a raw vector, and a named
+list of additional directives, and returns an R object of any kind (if
+the parser knows the input to be plain text, simply wrap it in
+\code{\link[=rawToChar]{rawToChar()}}). If the body is compressed, it will be decompressed based
+on the \code{Content-Encoding} header prior to passing it on to the parser.
+See \link{parsers} for a list of pre-supplied parsers. Parsers are either
+supplied in a named list or as named arguments to the parse method. The
+names should correspond to mime types or known file extensions. If
+\code{autofail = TRUE} the response will throw an appropriate abort code if
+failing to parse the body. \code{parse()} returns \code{TRUE} if parsing was
+successful and \code{FALSE} if not
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$parse(..., autofail = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{...}}{A named set of parser functions}
+
+\item{\code{autofail}}{Automatically populate the response if parsing fails}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-parse_raw"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-parse_raw}{}}}
 \subsection{Method \code{parse_raw()}}{
+This is a simpler version of the \code{parse()} method. It will
+attempt to decompress the body and set the \code{body} field to the resulting
+raw vector. It is then up to the server to decide how to handle the
+payload. It returns \code{TRUE} if successful and \code{FALSE} otherwise.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$parse_raw(autofail = TRUE)}\if{html}{\out{</div>}}
 }
 
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{autofail}}{Automatically populate the response if parsing fails}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-as_message"></a>}}
 \if{latex}{\out{\hypertarget{method-Request-as_message}{}}}
 \subsection{Method \code{as_message()}}{
+Prints a HTTP representation of the request to the output
+stream.
 \subsection{Usage}{
 \if{html}{\out{<div class="r">}}\preformatted{Request$as_message()}\if{html}{\out{</div>}}
 }
 
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Request-encode_string"></a>}}
+\if{latex}{\out{\hypertarget{method-Request-encode_string}{}}}
+\subsection{Method \code{encode_string()}}{
+base64-encode a string. If a key has been provided during
+initialisation the string is first encrypted and the final result is a
+combination of the encrypted text and the nonce, both base64 encoded and
+combined with a \code{"_"}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Request$encode_string(val)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{val}}{A single string to encrypt}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Request-decode_string"></a>}}
+\if{latex}{\out{\hypertarget{method-Request-decode_string}{}}}
+\subsection{Method \code{decode_string()}}{
+base64-decodes a string. If a key has been provided during
+initialisation the input is first split by \code{"_"} and then the two parts
+are base64 decoded and decrypted. Otherwise the input is base64-decoded
+as-is. It will always hold that
+\code{val == decode_string(encode_string(val))}.
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Request$decode_string(val)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{val}}{A single string to encrypt}
+}
+\if{html}{\out{</div>}}
+}
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Request-clear"></a>}}
+\if{latex}{\out{\hypertarget{method-Request-clear}{}}}
+\subsection{Method \code{clear()}}{
+Clears the content of the request and, if created, the
+related response. This method exists only to allow reuse of the request
+and response object to save a few milliseconds in latency. Use with
+caution and see e.g. how fiery maintains a poll of request objects
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Request$clear()}\if{html}{\out{</div>}}
+}
+
+}
+\if{html}{\out{<hr>}}
+\if{html}{\out{<a id="method-Request-forward"></a>}}
+\if{latex}{\out{\hypertarget{method-Request-forward}{}}}
+\subsection{Method \code{forward()}}{
+Forward a request to a new url, optionally setting different
+headers, queries, etc. Uses curl and mirai under the hood and returns a
+promise
+\subsection{Usage}{
+\if{html}{\out{<div class="r">}}\preformatted{Request$forward(
+  url,
+  query = NULL,
+  method = NULL,
+  headers = NULL,
+  body = NULL,
+  return = NULL,
+  ...
+)}\if{html}{\out{</div>}}
+}
+
+\subsection{Arguments}{
+\if{html}{\out{<div class="arguments">}}
+\describe{
+\item{\code{url}}{The url to forward to}
+
+\item{\code{query}}{Optional querystring to append to \code{url}. If \code{NULL} the query
+string of the current request will be used}
+
+\item{\code{method}}{The HTTP method to use. If \code{NULL} the method of the current
+request will be used}
+
+\item{\code{headers}}{A list of headers to add to the headers of the current
+request. You can remove a header from the current request by setting it
+to \code{NULL} here}
+
+\item{\code{body}}{The body to send with the forward. If \code{NULL} the body of the
+current request will be used}
+
+\item{\code{return}}{A function that takes in the fulfilled response object and
+whose return value is returned by the promise}
+
+\item{\code{...}}{ignored}
+}
+\if{html}{\out{</div>}}
+}
 }
 \if{html}{\out{<hr>}}
 \if{html}{\out{<a id="method-Request-clone"></a>}}

@@ -27,7 +27,7 @@ format_json(
 
 format_plain(sep = "\\n")
 
-format_xml(encoding = "UTF-8", options = "as_xml")
+format_xml(root_name = "document", encoding = "UTF-8", options = "as_xml")
 
 format_html(encoding = "UTF-8", options = "as_html")
 
@@ -57,12 +57,14 @@ An exception is that objects of class \code{AsIs} (i.e. wrapped in \code{\link[=
 
 \item{digits}{max number of decimal digits to print for numeric values. Use \code{\link[=I]{I()}} to specify significant digits. Use \code{NA} for max precision.}
 
-\item{pretty}{adds indentation whitespace to JSON output. Can be TRUE/FALSE or a number specifying the number of spaces to indent. See \code{\link[jsonlite:prettify]{prettify()}}}
+\item{pretty}{adds indentation whitespace to JSON output. Can be TRUE/FALSE or a number specifying the number of spaces to indent (default is 2). Use a negative number for tabs instead of spaces.}
 
 \item{force}{unclass/skip objects of classes with no defined JSON mapping}
 
 \item{sep}{The line separator. Plain text will be split into multiple strings
 based on this.}
+
+\item{root_name}{The name of the root element of the created xml}
 
 \item{encoding}{The character encoding to use in the document. The default
 encoding is \sQuote{UTF-8}. Available encodings are specified at

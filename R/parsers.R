@@ -64,20 +64,20 @@ parse_plain <- function(sep = '\n') {
 #'
 #' @inheritParams xml2::read_xml
 #'
-#' @importFrom xml2 as_list read_xml
+#' @importFrom xml2 read_xml
 #' @export
 parse_xml <- function(encoding = '', options = 'NOBLANKS', base_url = '') {
   function(raw, directives = list()) {
-    as_list(read_xml(raw, encoding = encoding, options = options, base_url = base_url))
+    xml2::as_list(read_xml(raw, encoding = encoding, options = options, base_url = base_url))
   }
 }
 #' @rdname parsers
 #'
-#' @importFrom xml2 as_list read_xml
+#' @importFrom xml2 read_xml
 #' @export
 parse_html <- function(encoding = '', options = c('RECOVER', 'NOERROR', 'NOBLANKS'), base_url = '') {
   function(raw, directives = list()) {
-    as_list(read_xml(raw, as_html = TRUE, encoding = encoding, options = options, base_url = base_url))
+    xml2::as_list(read_xml(raw, as_html = TRUE, encoding = encoding, options = options, base_url = base_url))
   }
 }
 #' @rdname parsers
@@ -91,11 +91,14 @@ parse_multiform <- function() {
 }
 #' @rdname parsers
 #'
-#' @importFrom webutils parse_query
+#' @param delim The delimiter to use for parsing arrays in non-exploded form.
+#' Either `NULL` (no delimiter) or one of `","`, `"|"`, or `" "`
+#'
 #' @export
-parse_queryform <- function() {
+parse_queryform <- function(delim = NULL) {
+  force(delim)
   function(raw, directives) {
-    parse_query(rawToChar(raw))
+    query_parser(rawToChar(raw), delim)
   }
 }
 #' @rdname parsers
