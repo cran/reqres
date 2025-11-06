@@ -1,3 +1,14 @@
+# reqres 1.1.0
+
+* Add support for otel OpenTelemetry by creating a span along with a request and
+  close it once done. spans created during the handling of the request should
+  use this span as a parent. Further, support the metrics defined in the HTTP
+  semantics
+* Added `body_raw` field to `Request` to read the raw, unparsed and unpacked,
+  content of the request body
+* `set_header()` and `append_header()` now allows vector input to set multiple
+  values to a header
+
 # reqres 1.0.0
 
 * Use rlang native type checking instead of assertthat
